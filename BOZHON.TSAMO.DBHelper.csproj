@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>BOZHON.TSAMO.DBHelper</AssemblyName>
+    <RootNamespace>BOZHON.TSAMO.DBHelper</RootNamespace>
+    <Authors>harris.zhang</Authors>
+    <Company>BOZHON</Company>
+    <Product>TSAMO.DBHelper</Product>
+    <Description>基于Dapper的数据库操作</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;;ASYNC;COREFX;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="DbContext - 复制.cs" />
+    <Compile Remove="EntitiesBuilder.cs" />
+    <Compile Remove="IEntityBuilder.cs" />
+    <Compile Remove="Metadata\Entities.cs" />
+    <Compile Remove="Metadata\FluentEntityColumnInfo.cs" />
+    <Compile Remove="Metadata\FluentEntityTableInfo.cs" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.5.1" />
+  </ItemGroup>
+
+</Project>

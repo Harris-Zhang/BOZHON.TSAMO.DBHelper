@@ -10,6 +10,8 @@ using System.Linq.Expressions;
 using System.Reflection.Emit;
 using System.Text.RegularExpressions;
 using System.Collections;
+using BOZHON.TSAMO.DBHelper.Adapters;
+using System.Data.SqlClient;
 
 namespace BOZHON.TSAMO.DBHelper
 {
@@ -31,6 +33,15 @@ namespace BOZHON.TSAMO.DBHelper
             //}
 
         }
+
+        //添加连接字符串属性
+        protected string ConnectionString { get; set; }
+
+
+        /// <summary>
+        /// 配置连接字符串--修改日期2020/05/25(王磊)
+        /// </summary>
+        //public abstract void SetConnectionString(string connectionString = null);
 
         #region 属性
         public int? CommandTimeout { get; set; }
@@ -237,9 +248,9 @@ namespace BOZHON.TSAMO.DBHelper
             /// </summary>
             /// <param name="entity"></param>
             /// <returns></returns>
-            public T GetById(T entity)
+            public T GetById(T entity, ICollection<string> columns = null)
             {
-                var sql = database.DbContextServices.SqlGenerater.SelectKey(typeof(T));
+                var sql = database.DbContextServices.SqlGenerater.SelectKey(typeof(T), columnNames: columns);
                 return database.FirstOrDefault<T>(sql, entity);
             }
             /// <summary>
@@ -306,7 +317,14 @@ namespace BOZHON.TSAMO.DBHelper
             /// <returns></returns>
             public Tuple<long, List<T>> Paged(int page, int rows, string sortOrder, string whereStr = null, object sqlArgs = null)
             {
-                var pageSql = database.DbContextServices.SqlGenerater.Select(typeof(T), null, null) + (string.IsNullOrEmpty(whereStr) ? "" : " where 1 = 1" + whereStr);
+                string where = "";
+                if (!string.IsNullOrEmpty(whereStr) && whereStr.Length >= 5)
+                {
+                    string wh1 = whereStr.Substring(1, 5);
+                    string wh2 = whereStr.Substring(6);
+                    where = "WHERE " + wh1.Replace("AND", "").Replace("OR", "") + wh2;
+                }
+                var pageSql = database.DbContextServices.SqlGenerater.Select(typeof(T), null, null) + where;
                 var partedSql = PagingUtil.SplitSql(pageSql);
                 if (!string.IsNullOrEmpty(sortOrder))
                     partedSql.OrderBy = sortOrder;
@@ -644,9 +662,17 @@ namespace BOZHON.TSAMO.DBHelper
 
         IDbContextServices IInfrastructure<IDbContextServices>.Instance => DbContextServices;
 
+        /// <summary>
+        /// 配置数据库连接字符串,可以在子类中重新--修改日期2020/05/25(王磊)
+        /// 配置数据库类型,默认使用SqlServer
+        /// </summary>
+        /// <param name="optionsBuilder"></param>
         protected internal virtual void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-
+            //配置字符串连接
+            optionsBuilder.UseConnectionString(ConnectionString);
+            //使用SQL Server数据库
+            optionsBuilder.UseSqlAdapter(new SqlServerAdapter(SqlClientFactory.Instance));
         }
 
         protected internal virtual void OnConfigured()
@@ -668,9 +694,12 @@ namespace BOZHON.TSAMO.DBHelper
         }
         internal static Action<TDatabase> tableConstructor;
 
-        public static TDatabase Init()
+        public static TDatabase Init(string connectionString = "")
         {
+            
             TDatabase db = new TDatabase();
+            db.ConnectionString = connectionString;
+            //db.SetConnectionString(connectionStr);
             db.InitDatabase();
             return db;
         }

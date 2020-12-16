@@ -4,9 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>BOZHON.TSAMO.DBHelper</AssemblyName>
     <RootNamespace>BOZHON.TSAMO.DBHelper</RootNamespace>
-    <Authors>harris.zhang</Authors>
-    <Company>BOZHON</Company>
-    <Product>TSAMO.DBHelper</Product>
+    <Version>1.0.3</Version>
+    <PackageReleaseNotes>去除License验证</PackageReleaseNotes>
     <Description>基于Dapper的数据库操作</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -22,7 +21,7 @@
     <Compile Remove="Metadata\Entities.cs" />
     <Compile Remove="Metadata\FluentEntityColumnInfo.cs" />
     <Compile Remove="Metadata\FluentEntityTableInfo.cs" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="System.Reflection.TypeExtensions" Version="4.5.1" />
   </ItemGroup>

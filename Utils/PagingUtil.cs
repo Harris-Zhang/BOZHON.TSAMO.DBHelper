@@ -8,7 +8,8 @@ namespace BOZHON.TSAMO.DBHelper.Utils
 {
     public class PagingUtil
     {
-        private static readonly Regex _rexSelect = new Regex(@"^\s*SELECT\s+(.+?)\sFROM\s", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+        //private static readonly Regex _rexSelect = new Regex(@"^\s*SELECT\s+(.+?)\sFROM\s", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+        private static readonly Regex _rexSelect = new Regex(@"^\s*SELECT\s+(.+?)\sFROM\s(?![\w\W]*?FROM)", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
         private static readonly Regex _rexOrderBy = new Regex(@"\s+ORDER\s+BY\s+([^\s]+(?:\s+ASC|\s+DESC)?)\s*$", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
         /// <summary>
@@ -18,6 +19,7 @@ namespace BOZHON.TSAMO.DBHelper.Utils
         {
             var parts = new PartedSql { Raw = sql };
 
+             
             // Extract the sql from "SELECT <whatever> FROM"
             var m = _rexSelect.Match(sql);
             if (!m.Success)

@@ -11,7 +11,7 @@ namespace BOZHON.TSAMO.DBHelper.Internal
     {
         private readonly IEntityMapper _mapper;
         private readonly ISqlAdapter _sqlAdapter;
-        private readonly ConcurrentCache<string, string> _sqlsCache = new ConcurrentCache<string, string>();
+        private static readonly ConcurrentCache<string, string> _sqlsCache = new ConcurrentCache<string, string>();
 
         public DefaultSqlGenerater(IEntityMapper mapper, ISqlAdapter sqlAdapter)
         {

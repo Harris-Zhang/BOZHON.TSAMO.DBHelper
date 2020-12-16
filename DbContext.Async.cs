@@ -111,9 +111,9 @@ namespace BOZHON.TSAMO.DBHelper
                 }
             }
 
-            public Task<T> GetByIdAsync(T entity)
+            public Task<T> GetByIdAsync(T entity, ICollection<string> columns = null)
             {
-                var sql = database.DbContextServices.SqlGenerater.SelectKey(typeof(T));
+                var sql = database.DbContextServices.SqlGenerater.SelectKey(typeof(T), columnNames: columns);
                 return database.FirstOrDefaultAsync<T>(sql, entity);
             }
 
@@ -154,7 +154,15 @@ namespace BOZHON.TSAMO.DBHelper
             /// <returns></returns>
             public async Task<Tuple<long, List<T>>> PagedAsync(int page, int rows, string sortOrder, string whereStr = null, object sqlArgs = null)
             {
-                var pageSql = database.DbContextServices.SqlGenerater.Select(typeof(T), null, null) + (string.IsNullOrEmpty(whereStr) ? "" : " where 1 = 1" + whereStr);
+                string where = "";
+                if (!string.IsNullOrEmpty(whereStr) && whereStr.Length >= 5)
+                {
+                    string wh1 = whereStr.Substring(1, 5);
+                    string wh2 = whereStr.Substring(6);
+                    where = "WHERE " + wh1.Replace("AND", "").Replace("OR", "") + wh2;
+                }
+
+                var pageSql = database.DbContextServices.SqlGenerater.Select(typeof(T), null, null) + where;
                 var partedSql = PagingUtil.SplitSql(pageSql);
                 if (!string.IsNullOrEmpty(sortOrder))
                     partedSql.OrderBy = sortOrder;

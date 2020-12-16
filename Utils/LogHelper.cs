@@ -11,7 +11,7 @@ namespace BOZHON.TSAMO.DBHelper.Utils
 {
     public class LogHelper
     {
-        static string symbol = "---------------------------------------------------------------------------------------";
+        //static string symbol = "---------------------------------------------------------------------------------------";
 
         #region  记录执行操作日志 log type
 

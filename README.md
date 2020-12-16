@@ -225,9 +225,13 @@ List<SYS_USER> list = masterDb.Fetch<SYS_USER>(sql.ToString(), new { ROLE_ID = r
 ```csharp
 var masterDb = new MasterDbContext();
 
-masterDb.BeginTransaction();
-//业务sql
-msterDb.CommitTransaction();
+ using (var trans = _db.GetTransaction())
+ {
+     _db.R_MACH_PART_LIFE.Delete(entity_life);
+     _db.R_MACH_PART_LIFE.Insert(newPart);
+    //业务sql
+    trans.Complete();
+ }
 
 
 ```

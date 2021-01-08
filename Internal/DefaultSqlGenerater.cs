@@ -3,6 +3,7 @@ using BOZHON.TSAMO.DBHelper.Metadata;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace BOZHON.TSAMO.DBHelper.Internal
@@ -107,7 +108,7 @@ namespace BOZHON.TSAMO.DBHelper.Internal
                 return $"update {tableName} set {setCols} where {where}";
             });
         }
-
+  
         /// <summary>
         /// 生成删除SQL
         /// </summary>
@@ -136,6 +137,30 @@ namespace BOZHON.TSAMO.DBHelper.Internal
                 }));
 
                 return $"delete from {tableName} where {where}";
+            });
+        }
+
+        /// <summary>
+        /// 生成删除SQL
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <param name="where">查询条件</param>
+        /// <param name="tableName">表名</param>
+        /// <returns></returns>
+        public string Delete(Type type, string where, string tableName = null)
+        {
+            var key = $"{nameof(Delete)}_{type.FullName}_{tableName}_{where}";
+            return _sqlsCache.GetOrAdd(key, () =>
+            {
+                var tableInfo = _mapper.GetEntityTableInfo(type);
+
+                var paramPrefix = _sqlAdapter.GetParameterPrefix();
+
+                if (string.IsNullOrEmpty(tableName))
+                    tableName = _sqlAdapter.EscapeTableName(tableInfo.TableName);
+
+                 
+                return $"delete from {tableName} {where}";
             });
         }
 
@@ -175,6 +200,36 @@ namespace BOZHON.TSAMO.DBHelper.Internal
                      }));
                 }
 
+                return $"select {qCols} from {tableName} {where}";
+            });
+        }
+
+        /// <summary>
+        /// 生成查询SQL
+        /// </summary>
+        /// <param name="type">类别</param>
+        /// <param name="tableName">表名</param>
+        /// <param name="columnNames">需要查询的字段（默认全部）</param>
+        /// <param name="primaryKeyName">条件字段</param>
+        /// <returns></returns>
+        public string Select(Type type, string where, string tableName = null, ICollection<string> columnNames = null)
+        {
+            var key = $"{nameof(Select)}_{type.FullName}_{tableName}_{GetKey(columnNames)}_{where}";
+            return _sqlsCache.GetOrAdd(key, () =>
+            {
+                var tableInfo = _mapper.GetEntityTableInfo(type);
+                var paramPrefix = _sqlAdapter.GetParameterPrefix();
+
+                if (string.IsNullOrEmpty(tableName))
+                    tableName = tableInfo.TableName;
+                tableName = _sqlAdapter.EscapeTableName(tableName);
+
+                var qCols = "";
+                if (columnNames?.Count > 0)
+                    qCols = string.Join(", ", columnNames.Select(p => _sqlAdapter.EscapeSqlIdentifier(p)));
+                else
+                    qCols = string.Join(", ", tableInfo.Columns.Select(p => _sqlAdapter.EscapeSqlIdentifier(p.ColumnName)));
+ 
                 return $"select {qCols} from {tableName} {where}";
             });
         }
@@ -252,8 +307,7 @@ namespace BOZHON.TSAMO.DBHelper.Internal
                 return $"select {qCols} from {tableName} {where}";
             });
         }
-
-
+ 
         private List<EntityColumnInfo> GetPrimaryKey(EntityTableInfo tableInfo, ICollection<string> primaryKey = null)
         {
             List<EntityColumnInfo> pkInfo = new List<EntityColumnInfo>();

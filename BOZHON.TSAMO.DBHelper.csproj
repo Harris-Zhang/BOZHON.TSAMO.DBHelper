@@ -4,8 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>BOZHON.TSAMO.DBHelper</AssemblyName>
     <RootNamespace>BOZHON.TSAMO.DBHelper</RootNamespace>
-    <Version>1.0.3</Version>
-    <PackageReleaseNotes>去除License验证</PackageReleaseNotes>
+    <Version>1.0.4</Version>
+    <PackageReleaseNotes>添加lambda 条件表达式</PackageReleaseNotes>
     <Description>基于Dapper的数据库操作</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

@@ -17,34 +17,78 @@ namespace BOZHON.TSAMO.DBHelper
         #region Insert、Update 、Delete、Select   Async
         public partial class Table<T, TId>
         {
+            /// <summary>
+            /// 添加表数据
+            /// </summary>
+            /// <typeparam name="T">对象类型</typeparam>
+            /// <param name="entity">对象</param>
+            /// <param name="tableName">表名称</param>
+            /// <param name="noColumnNames">去除的字段</param>
+            /// <example>
+            /// <code>
+            /// _db.SYS_USER.Insert(new SYS_USER { USER_CODE = '',USER_NAME = ''})
+            /// </code>
+            /// </example>
+            /// <returns>添加个数</returns>
             public Task<int> InsertAsync(T entity, string tableName = null, ICollection<string> noColumnNames = null)
             {
                 var type = GetEnumerableElementType(typeof(T), out bool isEnumerable);
                 var sql = database.DbContextServices.SqlGenerater.Insert(type, tableName, noColumnNames);
                 return database.ExecuteAsync(sql, entity);
             }
-
+            /// <summary>
+            /// 添加表数据(批量添加)
+            /// </summary>
+            /// <typeparam name="T">对象类型</typeparam>
+            /// <param name="entitys">对象列表</param>
+            /// <param name="tableName">表名称</param>
+            /// <param name="noColumnNames">去除的字段</param>
+            /// <example>
+            /// <code>
+            /// _db.SYS_USER.InsertBatch(listUser)
+            /// </code>
+            /// </example>
+            /// <returns>添加个数</returns>
             public Task<int> InsertBatchAsync(List<T> entitys, string tableName = null, ICollection<string> noColumnNames = null)
             {
                 var type = GetEnumerableElementType(typeof(T), out bool isEnumerable);
                 var sql = database.DbContextServices.SqlGenerater.Insert(type, tableName, noColumnNames);
                 return database.ExecuteAsync(sql, entitys);
             }
-
+            /// <summary>
+            /// 更新表数据
+            /// </summary>
+            /// <typeparam name="T">对象类型</typeparam>
+            /// <param name="entity">对象</param>
+            /// <param name="updateColumns">需要更新的列(new string[]{"USER_CODE","USER_NAME"})</param>
+            /// <param name="tableName">表名</param>
+            /// <param name="primaryKeyName">条件列(默认主键更新)(new string[]{"USER_CODE"})</param>
+            /// <example>
+            /// <code>
+            /// _db.SYS_USER.Update(new SYS_USER { USER_CODE = '',USER_NAME = ''}, new string[]{"USER_NAME"})
+            /// </code>
+            /// </example>
+            /// <returns>修改个数</returns>
             public Task<int> UpdateAsync(T entity, ICollection<string> updateColumns = null, string tableName = null, ICollection<string> primaryKeyName = null)
             {
                 var type = GetEnumerableElementType(typeof(T), out bool isEnumberable);
                 var sql = database.DbContextServices.SqlGenerater.Update(type, tableName, updateColumns, primaryKeyName);
                 return database.ExecuteAsync(sql, entity);
             }
-
-            public Task<int> UpdateBatchAsync(List<T> entitys, ICollection<string> updateColumns = null, string tableName = null, ICollection<string> primaryKeyName = null)
-            {
-                var type = GetEnumerableElementType(typeof(T), out bool isEnumberable);
-                var sql = database.DbContextServices.SqlGenerater.Update(type, tableName, updateColumns, primaryKeyName);
-                return database.ExecuteAsync(sql, entitys);
-            }
-
+            /// <summary>
+            /// 更新表数据
+            /// </summary>
+            /// <typeparam name="T">对象类型</typeparam>
+            /// <param name="entity">对象</param>
+            /// <param name="columns">指定对象属性名（x => new { x.XXX, x.XXX, x.XXX }）</param>
+            /// <param name="updateColumns">需要更新的列(new string[]{"USER_CODE","USER_NAME"})</param>
+            /// <param name="tableName">表名</param>
+            /// <example>
+            /// <code>
+            /// _db.SYS_USER.Update(new SYS_USER { USER_CODE = '',USER_NAME = ''}, (p=> new { x.XXX, x.XXX, x.XXX } ),new string[]{"USER_CODE","USER_NAME"})
+            /// </code>
+            /// </example>
+            /// <returns>修改个数</returns>
             public Task<int> UpdateAsync(T entity, Expression<Func<T, object>> updateColumns, string tableName = null, ICollection<string> primaryKeyName = null)
             {
                 var eTableInfo = database.DbContextServices.EntityMapper.GetEntityTableInfo(typeof(T));
@@ -58,8 +102,34 @@ namespace BOZHON.TSAMO.DBHelper
                 }
                 return UpdateAsync(entity, colNames, tableName, primaryKeyName);
             }
-
-
+            /// <summary>
+            /// 批量更新表数据
+            /// </summary>
+            /// <param name="entitys"></param>
+            /// <param name="updateColumns">需要更新的列(new string[]{"USER_CODE","USER_NAME"})</param>
+            /// <param name="primaryKeyName">条件列(默认主键更新)(new string[]{"USER_CODE"})</param>
+            /// <param name="tableName">表名</param>
+            /// <example>
+            /// <code>
+            /// _db.SYS_USER.UpdateBatch(listUser, new string[]{"USER_NAME"}, new string[]{"USER_CODE"})
+            /// </code>
+            /// </example>
+            /// <returns></returns>
+            public Task<int> UpdateBatchAsync(List<T> entitys, ICollection<string> updateColumns = null, string tableName = null, ICollection<string> primaryKeyName = null)
+            {
+                var type = GetEnumerableElementType(typeof(T), out bool isEnumberable);
+                var sql = database.DbContextServices.SqlGenerater.Update(type, tableName, updateColumns, primaryKeyName);
+                return database.ExecuteAsync(sql, entitys);
+            }
+             
+            /// <summary>
+            /// 删除表数据
+            /// </summary>
+            /// <typeparam name="T">对象类型</typeparam>
+            /// <param name="entity">对象</param>
+            /// <param name="primaryKeyName">条件列(默认主键)(new string[]{"USER_CODE"})</param>
+            /// <param name="tableName">表名</param>
+            /// <returns></returns>
             public Task<int> DeleteAsync(T entity, ICollection<string> primaryKeyName = null, string tableName = null)
             {
                 bool isEnumerable;
@@ -68,7 +138,14 @@ namespace BOZHON.TSAMO.DBHelper
                 var sql = database.DbContextServices.SqlGenerater.Delete(type, tableName, primaryKeyName);
                 return database.ExecuteAsync(sql, entity);
             }
-
+            /// <summary>
+            /// 删除表数据
+            /// </summary>
+            /// <typeparam name="T">对象类型</typeparam>
+            /// <param name="entity">对象</param>
+            /// <param name="columns">条件列(默认主键)（x => new { x.XXX, x.XXX, x.XXX }）</param>
+            /// <param name="tableName">表名</param>
+            /// <returns></returns>
             public Task<int> DeleteAsync(T entity, Expression<Func<T, object>> primaryKeyName, string tableName = null)
             {
                 bool isEnumerable;
@@ -84,6 +161,45 @@ namespace BOZHON.TSAMO.DBHelper
                 return database.ExecuteAsync(sql, entity);
             }
 
+
+            /// <summary>
+            /// 删除表数据
+            /// </summary>
+            /// <typeparam name="T">对象类型</typeparam>
+            /// <param name="where">删除条件（p=>p.USER_CODE == "" p.PWD == "" (p.USER_NAME.Contains("123") p.USER_NAME.StartsWith("123") p.USER_NAME.EndWith("123")) p.EMAIL.In(new string[]{"2","3"}）</param>
+            /// <param name="tableName">表名</param>
+            /// <returns></returns>
+            public Task<int> DeleteAsync(Expression<Func<T, object>> where, string tableName = null)
+            {
+                ExpressionUtil2 exp = new ExpressionUtil2(where, database.DbContextServices.SqlAdapter.GetParameterPrefix());
+                var sql = database.DbContextServices.SqlGenerater.Delete(typeof(T), exp.SqlCmd, tableName);
+                return database.ExecuteAsync(sql, exp.Param);
+            }
+
+            /// <summary>
+            /// 批量删除表数据
+            /// </summary>
+            /// <typeparam name="T">对象类型</typeparam>
+            /// <param name="entitys">对象</param>
+            /// <param name="primaryKeyName">条件列(默认主键)(new string[]{"USER_CODE"})</param>
+            /// <param name="tableName">表名</param>
+            /// <returns></returns>
+            public Task<int> DeleteBatchAsync(List<T> entitys, ICollection<string> primaryKeyName = null, string tableName = null)
+            {
+                var type = GetEnumerableElementType(typeof(T), out bool isEnumerable);
+
+                var sql = database.DbContextServices.SqlGenerater.Delete(type, tableName, primaryKeyName);
+                return database.ExecuteAsync(sql, entitys);
+            }
+            /// <summary>
+            /// 保存表数据
+            /// </summary>
+            /// <typeparam name="T">对象类型</typeparam>
+            /// <param name="entity">对象</param>
+            /// <param name="columns">需要更新的列(new string[]{"USER_CODE","USER_NAME"})</param>
+            /// <param name="tableName">表名</param>
+            /// <param name="primaryKeyName">条件列(默认主键)(new string[]{"USER_CODE"})</param>
+            /// <returns></returns>
             public Task<int> SaveAsync(T entity, ICollection<string> updateColumns = null, string tableName = null, ICollection<string> primaryKeyName = null)
             {
                 var t = GetByIdAsync(entity);
@@ -98,31 +214,63 @@ namespace BOZHON.TSAMO.DBHelper
 
             }
 
-            public Task<int> SaveAsync(T entity, Expression<Func<T, object>> updateColumns, string tableName = null, ICollection<string> primaryKeyName = null)
-            {
-                var t = GetByIdAsync(entity);
-                if (t == null)
-                {
-                    return InsertAsync(entity, tableName);
-                }
-                else
-                {
-                    return UpdateAsync(entity, updateColumns, tableName, primaryKeyName);
-                }
-            }
-
+            /// <summary>
+            /// 根据主键查询数据
+            /// </summary>
+            /// <param name="entity">对象</param>
+            /// <param name="columns">需要查询的列（默认全部）(new string[]{"USER_CODE"})</param>
+            /// <returns></returns>
             public Task<T> GetByIdAsync(T entity, ICollection<string> columns = null)
             {
                 var sql = database.DbContextServices.SqlGenerater.SelectKey(typeof(T), columnNames: columns);
                 return database.FirstOrDefaultAsync<T>(sql, entity);
             }
 
-            public Task<IEnumerable<T>> GetListAsync()
+            /// <summary>
+            /// 查询默认第一个数据
+            /// </summary>
+            /// <param name="entity">对象</param>
+            /// <param name="primaryKeyName">条件列(new string[]{"USER_CODE"})</param>
+            /// <param name="columns">需要查询的列（默认全部）(new string[]{"USER_CODE"})</param>
+            /// <returns></returns>
+            public Task<T> FirstOrDefaultAsync(T entity, ICollection<string> primaryKeyName, ICollection<string> columns = null)
             {
-                var sql = database.DbContextServices.SqlGenerater.Select(typeof(T), null, null);
-                return database.QueryAsync<T>(sql);
+                bool isEnumerable;
+                var type = GetEnumerableElementType(typeof(T), out isEnumerable);
+                var sql = database.DbContextServices.SqlGenerater.Select(typeof(T), null, columns, primaryKeyName);
+                return database.FirstOrDefaultAsync<T>(sql, entity);
             }
 
+            /// <summary>
+            /// 查询默认第一个数据
+            /// </summary>
+            /// <param name="where">条件（p=>p.USER_CODE == "" p.PWD == "" (p.USER_NAME.Contains("123") p.USER_NAME.StartsWith("123") p.USER_NAME.EndWith("123")) p.EMAIL.In(new string[]{"2","3"}）</param>
+            /// <param name="columns">需要查询的列（默认全部）(new string[]{"USER_CODE"})</param>
+            /// <returns></returns>
+            public Task<T> FirstOrDefaultAsync(Expression<Func<T, object>> where, ICollection<string> columns = null)
+            {
+                ExpressionUtil2 exp = new ExpressionUtil2(where, database.DbContextServices.SqlAdapter.GetParameterPrefix());
+                var sql = database.DbContextServices.SqlGenerater.Select(typeof(T), exp.SqlCmd, "", columnNames: columns);
+                return database.FirstOrDefaultAsync<T>(sql, exp.Param);
+            }
+
+            /// <summary>
+            /// 查询所有数据
+            /// </summary>
+            /// <param name="columns">需要查询的列（默认全部）(new string[]{"USER_CODE"})</param>
+            /// <returns></returns>
+            public Task<IEnumerable<T>> GetListAsync(ICollection<string> columns = null)
+            {
+                var sql = database.DbContextServices.SqlGenerater.Select(typeof(T), columnNames: columns);
+                return database.QueryAsync<T>(sql);
+            }
+            /// <summary>
+            /// 查询所有数据
+            /// </summary>
+            /// <param name="entity"></param>
+            /// <param name="primaryKeyName">条件列（AND 连接符）(new string[]{"USER_CODE"})</param>
+            /// <param name="columns">需要查询的列（默认全部）(new string[]{"USER_CODE"})</param>
+            /// <returns></returns>
             public Task<IEnumerable<T>> GetListAsync(T entity, ICollection<string> primaryKeyName, ICollection<string> columns = null)
             {
                 bool isEnumerable;
@@ -131,12 +279,17 @@ namespace BOZHON.TSAMO.DBHelper
                 return database.QueryAsync<T>(sql, entity);
             }
 
-            public Task<T> FirstOrDefaultAsync(T entity, ICollection<string> primaryKeyName, ICollection<string> columns = null)
+            /// <summary>
+            /// 查询所有数据
+            /// </summary>
+            /// <param name="where">条件（p=>p.USER_CODE == "" p.PWD == "" (p.USER_NAME.Contains("123") p.USER_NAME.StartsWith("123") p.USER_NAME.EndWith("123")) p.EMAIL.In(new string[]{"2","3"}）</param>
+            /// <param name="columns">需要查询的列（默认全部）(new string[]{"USER_CODE"})</param>
+            /// <returns></returns>
+            public Task<IEnumerable<T>> GetListAsync(Expression<Func<T, object>> where, ICollection<string> columns = null)
             {
-                bool isEnumerable;
-                var type = GetEnumerableElementType(typeof(T), out isEnumerable);
-                var sql = database.DbContextServices.SqlGenerater.Select(typeof(T), null, columns, primaryKeyName);
-                return database.FirstOrDefaultAsync<T>(sql, entity);
+                ExpressionUtil2 exp = new ExpressionUtil2(where, database.DbContextServices.SqlAdapter.GetParameterPrefix());
+                var sql = database.DbContextServices.SqlGenerater.Select(typeof(T), exp.SqlCmd, "", columnNames: columns);
+                return database.QueryAsync<T>(sql, exp.Param);
             }
 
             /// <summary>
@@ -162,7 +315,7 @@ namespace BOZHON.TSAMO.DBHelper
                     where = "WHERE " + wh1.Replace("AND", "").Replace("OR", "") + wh2;
                 }
 
-                var pageSql = database.DbContextServices.SqlGenerater.Select(typeof(T), null, null) + where;
+                var pageSql = database.DbContextServices.SqlGenerater.Select(typeof(T)) + where;
                 var partedSql = PagingUtil.SplitSql(pageSql);
                 if (!string.IsNullOrEmpty(sortOrder))
                     partedSql.OrderBy = sortOrder;

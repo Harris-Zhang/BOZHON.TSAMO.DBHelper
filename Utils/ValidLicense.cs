@@ -11,6 +11,7 @@ namespace BOZHON.TSAMO.DBHelper.Utils
 {
     public class ValidLicense
     {
+        private readonly static string licenseKey = System.IO.File.ReadAllText("TSAMO.license");
         public static List<string> GetMacAddress(string separator = "-")
         {
             NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
@@ -127,7 +128,7 @@ namespace BOZHON.TSAMO.DBHelper.Utils
             bool result = false;
             try
             {
-                string licenseKey = System.IO.File.ReadAllText("TSAMO.license");
+                
                 if (licenseKey.Length < 284)
                 {
                     message = "License 有误，请联系相关人员确认License 是否正确";

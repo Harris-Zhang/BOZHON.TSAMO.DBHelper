@@ -27,10 +27,10 @@ namespace BOZHON.TSAMO.DBHelper
         private bool _initializing;
         static DbContext()
         {
-            //if (!ValidLicense.IsValidLicense(out string message))
-            //{
-            //    throw new Exception(message);
-            //}
+            if (!ValidLicense.IsValidLicense(out string message))
+            {
+                throw new Exception(message);
+            }
 
         }
 
@@ -66,7 +66,12 @@ namespace BOZHON.TSAMO.DBHelper
             /// <param name="entity">对象</param>
             /// <param name="tableName">表名称</param>
             /// <param name="noColumnNames">去除的字段</param>
-            /// <returns></returns>
+            /// <example>
+            /// <code>
+            /// _db.SYS_USER.Insert(new SYS_USER { USER_CODE = '',USER_NAME = ''})
+            /// </code>
+            /// </example>
+            /// <returns>添加个数</returns>
             public int Insert(T entity, string tableName = null, ICollection<string> noColumnNames = null)
             {
                 var type = GetEnumerableElementType(typeof(T), out bool isEnumerable);
@@ -79,10 +84,15 @@ namespace BOZHON.TSAMO.DBHelper
             /// 添加表数据(批量添加)
             /// </summary>
             /// <typeparam name="T">对象类型</typeparam>
-            /// <param name="entitys">对象</param>
+            /// <param name="entitys">对象列表</param>
             /// <param name="tableName">表名称</param>
             /// <param name="noColumnNames">去除的字段</param>
-            /// <returns></returns>
+            /// <example>
+            /// <code>
+            /// _db.SYS_USER.InsertBatch(listUser)
+            /// </code>
+            /// </example>
+            /// <returns>添加个数</returns>
             public int InsertBatch(List<T> entitys, string tableName = null, ICollection<string> noColumnNames = null)
             {
                 var type = GetEnumerableElementType(typeof(T), out bool isEnumerable);
@@ -98,52 +108,69 @@ namespace BOZHON.TSAMO.DBHelper
             /// </summary>
             /// <typeparam name="T">对象类型</typeparam>
             /// <param name="entity">对象</param>
-            /// <param name="updateColumns">需要更新的列</param>
+            /// <param name="updateColumns">需要更新的列(new string[]{"USER_CODE","USER_NAME"})</param>
+            /// <param name="primaryKeyName">条件列(默认主键更新)(new string[]{"USER_CODE"})</param>
             /// <param name="tableName">表名</param>
-            /// <param name="primaryKeyName">条件列(默认主键更新)</param>
-            /// <returns></returns>
-            public int Update(T entity, ICollection<string> updateColumns = null, string tableName = null, ICollection<string> primaryKeyName = null)
+            /// <example>
+            /// <code>
+            /// _db.SYS_USER.Update(new SYS_USER { USER_CODE = '',USER_NAME = ''}, new string[]{"USER_NAME"})
+            /// </code>
+            /// </example>
+            /// <returns>修改个数</returns>
+            public int Update(T entity, ICollection<string> updateColumns = null, ICollection<string> primaryKeyName = null, string tableName = null)
             {
                 var type = GetEnumerableElementType(typeof(T), out bool isEnumberable);
                 var sql = database.DbContextServices.SqlGenerater.Update(type, tableName, updateColumns, primaryKeyName);
+                return database.Execute(sql, entity);
+            }
+
+            /// <summary>
+            /// 更新表数据
+            /// </summary>
+            /// <typeparam name="T">对象类型</typeparam>
+            /// <param name="entity">对象</param>
+            /// <param name="columns">指定对象属性名（x => new { x.XXX, x.XXX, x.XXX }）</param>
+            /// <param name="updateColumns">需要更新的列(new string[]{"USER_CODE","USER_NAME"})</param>
+            /// <param name="tableName">表名</param>
+            /// <example>
+            /// <code>
+            /// _db.SYS_USER.Update(new SYS_USER { USER_CODE = '',USER_NAME = ''}, (p=> new { x.XXX, x.XXX, x.XXX } ),new string[]{"USER_CODE","USER_NAME"})
+            /// </code>
+            /// </example>
+            /// <returns>修改个数</returns>
+            public int Update(T entity, Expression<Func<T, object>> columns, ICollection<string> updateColumns = null, string tableName = null)
+            {
+                var type = GetEnumerableElementType(typeof(T), out bool isEnumerable);
+                var eTabInfo = database.DbContextServices.EntityMapper.GetEntityTableInfo(typeof(T));
+                ICollection<string> colNames = null;
+                if (columns != null)
+                {
+                    var cPis = ExpressionUtil.GetPropertyAccessList(columns);
+                    colNames = cPis.Select(p => eTabInfo.Columns.First(p1 => p1.ColumnName == p.Name).ColumnName).ToList();
+                }
+                var sql = database.DbContextServices.SqlGenerater.Update(typeof(T), tableName, updateColumns, colNames);
                 return database.Execute(sql, entity);
             }
             /// <summary>
             /// 批量更新表数据
             /// </summary>
             /// <param name="entitys"></param>
-            /// <param name="updateColumns"></param>
-            /// <param name="tableName"></param>
-            /// <param name="primaryKeyName"></param>
+            /// <param name="updateColumns">需要更新的列(new string[]{"USER_CODE","USER_NAME"})</param>
+            /// <param name="primaryKeyName">条件列(默认主键更新)(new string[]{"USER_CODE"})</param>
+            /// <param name="tableName">表名</param>
+            /// <example>
+            /// <code>
+            /// _db.SYS_USER.UpdateBatch(listUser, new string[]{"USER_NAME"}, new string[]{"USER_CODE"})
+            /// </code>
+            /// </example>
             /// <returns></returns>
-            public int UpdateBatch(List<T> entitys, ICollection<string> updateColumns = null, string tableName = null, ICollection<string> primaryKeyName = null)
+            public int UpdateBatch(List<T> entitys, ICollection<string> updateColumns = null, ICollection<string> primaryKeyName = null, string tableName = null)
             {
                 var type = GetEnumerableElementType(typeof(T), out bool isEnumberable);
                 var sql = database.DbContextServices.SqlGenerater.Update(type, tableName, updateColumns, primaryKeyName);
                 return database.Execute(sql, entitys);
             }
-            /// <summary>
-            /// 更新表数据
-            /// </summary>
-            /// <typeparam name="T">对象类型</typeparam>
-            /// <param name="entity">对象</param>
-            /// <param name="columns">指定对象属性名需要更新的列（x => new { x.XXX, x.XXX, x.XXX }）</param>
-            /// <param name="tableName">表名</param>
-            /// <param name="primaryKeyName">主键列名</param>
-            /// <returns></returns>
-            public int Update(T entity, Expression<Func<T, object>> columns, string tableName = null, ICollection<string> primaryKeyName = null)
-            {
-                var eTableInfo = database.DbContextServices.EntityMapper.GetEntityTableInfo(typeof(T));
 
-                ICollection<string> colNames = null;
-                if (columns != null)
-                {
-                    var cPis = ExpressionUtil.GetPropertyAccessList(columns);
-                    colNames = cPis.Select(p => eTableInfo.Columns.First(p1 => p1.ColumnName == p.Name).ColumnName).ToList();
-
-                }
-                return Update(entity, colNames, tableName, primaryKeyName);
-            }
             #endregion
 
             #region 删除
@@ -152,7 +179,7 @@ namespace BOZHON.TSAMO.DBHelper
             /// </summary>
             /// <typeparam name="T">对象类型</typeparam>
             /// <param name="entity">对象</param>
-            /// <param name="primaryKeyName">主键列名</param>
+            /// <param name="primaryKeyName">条件列(默认主键)(new string[]{"USER_CODE"})</param>
             /// <param name="tableName">表名</param>
             /// <returns></returns>
             public int Delete(T entity, ICollection<string> primaryKeyName = null, string tableName = null)
@@ -167,7 +194,7 @@ namespace BOZHON.TSAMO.DBHelper
             /// </summary>
             /// <typeparam name="T">对象类型</typeparam>
             /// <param name="entity">对象</param>
-            /// <param name="columns">指定对象属性名（x => new { x.XXX, x.XXX, x.XXX }）</param>
+            /// <param name="columns">条件列(默认主键)（x => new { x.XXX, x.XXX, x.XXX }）</param>
             /// <param name="tableName">表名</param>
             /// <returns></returns>
             public int Delete(T entity, Expression<Func<T, object>> columns, string tableName = null)
@@ -185,11 +212,25 @@ namespace BOZHON.TSAMO.DBHelper
             }
 
             /// <summary>
+            /// 删除表数据
+            /// </summary>
+            /// <typeparam name="T">对象类型</typeparam>
+            /// <param name="where">删除条件（p=>p.USER_CODE == "" p.PWD == "" (p.USER_NAME.Contains("123") p.USER_NAME.StartsWith("123") p.USER_NAME.EndWith("123")) p.EMAIL.In(new string[]{"2","3"}）</param>
+            /// <param name="tableName">表名</param>
+            /// <returns></returns> 
+            public int Delete(Expression<Func<T, object>> where, string tableName = null)
+            {
+                ExpressionUtil2 exp = new ExpressionUtil2(where, database.DbContextServices.SqlAdapter.GetParameterPrefix());
+                var sql = database.DbContextServices.SqlGenerater.Delete(typeof(T), exp.SqlCmd, tableName);
+                return database.Execute(sql, exp.Param);
+            }
+
+            /// <summary>
             /// 批量删除表数据
             /// </summary>
             /// <typeparam name="T">对象类型</typeparam>
             /// <param name="entitys">对象</param>
-            /// <param name="primaryKeyName">主键列名</param>
+            /// <param name="primaryKeyName">条件列(默认主键)(new string[]{"USER_CODE"})</param>
             /// <param name="tableName">表名</param>
             /// <returns></returns>
             public int DeleteBatch(List<T> entitys, ICollection<string> primaryKeyName = null, string tableName = null)
@@ -199,6 +240,8 @@ namespace BOZHON.TSAMO.DBHelper
                 var sql = database.DbContextServices.SqlGenerater.Delete(type, tableName, primaryKeyName);
                 return database.Execute(sql, entitys);
             }
+
+
             #endregion
 
             #region 保存
@@ -207,9 +250,9 @@ namespace BOZHON.TSAMO.DBHelper
             /// </summary>
             /// <typeparam name="T">对象类型</typeparam>
             /// <param name="entity">对象</param>
-            /// <param name="columns">指定表列名</param>
+            /// <param name="columns">需要更新的列(new string[]{"USER_CODE","USER_NAME"})</param>
             /// <param name="tableName">表名</param>
-            /// <param name="primaryKeyName">主键列名</param>
+            /// <param name="primaryKeyName">条件列(默认主键)(new string[]{"USER_CODE"})</param>
             /// <returns></returns>
             public int Save(T entity, ICollection<string> columns = null, string tableName = null, ICollection<string> primaryKeyName = null)
             {
@@ -220,25 +263,10 @@ namespace BOZHON.TSAMO.DBHelper
                 }
                 else
                 {
-                    return Update(entity, columns, tableName, primaryKeyName);
+                    return Update(entity, columns, primaryKeyName, tableName);
                 }
             }
-            /// <summary>
-            /// 保存表数据
-            /// </summary>
-            /// <typeparam name="T">对象类型</typeparam>
-            /// <param name="entity">对象</param>
-            /// <param name="columns">指定对象属性名（x => new { x.XXX, x.XXX, x.XXX }）</param>
-            /// <param name="tableName">表名</param>
-            /// <param name="primaryKeyName">主键列名</param>
-            /// <returns></returns>
-            public int Save(T entity, Expression<Func<T, object>> columns, string tableName = null, ICollection<string> primaryKeyName = null)
-            {
-                var updCount = Update(entity, columns, tableName, primaryKeyName);
-                if (updCount < 1)
-                    return Insert(entity, tableName);
-                return updCount;
-            }
+
             #endregion
 
             #region 查询
@@ -246,53 +274,21 @@ namespace BOZHON.TSAMO.DBHelper
             /// <summary>
             /// 根据主键查询数据
             /// </summary>
-            /// <param name="entity"></param>
+            /// <param name="entity">对象</param>
+            /// <param name="columns">需要查询的列（默认全部）(new string[]{"USER_CODE"})</param>
             /// <returns></returns>
             public T GetById(T entity, ICollection<string> columns = null)
             {
                 var sql = database.DbContextServices.SqlGenerater.SelectKey(typeof(T), columnNames: columns);
                 return database.FirstOrDefault<T>(sql, entity);
             }
-            /// <summary>
-            /// 查询列表（条件IN）
-            /// </summary>
-            /// <param name="param"></param>
-            /// <param name="primaryKeyName"></param>
-            /// <param name="columns"></param>
-            /// <returns></returns>
-            public IEnumerable<T> GetListByIn(object param, ICollection<string> primaryKeyName, ICollection<string> columns = null)
-            {
-                var sql = database.DbContextServices.SqlGenerater.SelectIn(typeof(T), primaryKeyName, columns);
-                return database.Query<T>(sql, param);
-            }
-            /// <summary>
-            /// 查询所有数据
-            /// </summary>
-            /// <returns></returns>
-            public IEnumerable<T> GetList()
-            {
-                var sql = database.DbContextServices.SqlGenerater.Select(typeof(T));
-                return database.Query<T>(sql);
-            }
-            /// <summary>
-            /// 查询所有数据
-            /// </summary>
-            /// <param name="entity"></param>
-            /// <param name="primaryKeyName"></param>
-            /// <param name="columns"></param>
-            /// <returns></returns>
-            public IEnumerable<T> GetList(T entity, ICollection<string> primaryKeyName, ICollection<string> columns = null)
-            {
-                var type = GetEnumerableElementType(typeof(T), out bool isEnumerable);
-                var sql = database.DbContextServices.SqlGenerater.Select(typeof(T), null, columns, primaryKeyName);
-                return database.Query<T>(sql, entity);
-            }
+
             /// <summary>
             /// 查询默认第一个数据
             /// </summary>
-            /// <param name="entity"></param>
-            /// <param name="primaryKeyName"></param>
-            /// <param name="columns"></param>
+            /// <param name="entity">对象</param>
+            /// <param name="primaryKeyName">条件列(new string[]{"USER_CODE"})</param>
+            /// <param name="columns">需要查询的列（默认全部）(new string[]{"USER_CODE"})</param>
             /// <returns></returns>
             public T FirstOrDefault(T entity, ICollection<string> primaryKeyName, ICollection<string> columns = null)
             {
@@ -301,7 +297,67 @@ namespace BOZHON.TSAMO.DBHelper
                 var sql = database.DbContextServices.SqlGenerater.Select(typeof(T), null, columns, primaryKeyName);
                 return database.FirstOrDefault<T>(sql, entity);
             }
+            /// <summary>
+            /// 查询默认第一个数据
+            /// </summary>
+            /// <param name="where">条件（p=>p.USER_CODE == "" p.PWD == "" (p.USER_NAME.Contains("123") p.USER_NAME.StartsWith("123") p.USER_NAME.EndWith("123")) p.EMAIL.In(new string[]{"2","3"}）</param>
+            /// <param name="columns">需要查询的列（默认全部）(new string[]{"USER_CODE"})</param>
+            /// <returns></returns>
+            public T FirstOrDefault(Expression<Func<T, object>> where, ICollection<string> columns = null)
+            {
+                ExpressionUtil2 exp = new ExpressionUtil2(where, database.DbContextServices.SqlAdapter.GetParameterPrefix());
+                var sql = database.DbContextServices.SqlGenerater.Select(typeof(T), exp.SqlCmd, "", columnNames: columns);
+                return database.FirstOrDefault<T>(sql, exp.Param);
+            }
 
+            /// <summary>
+            /// 查询所有数据
+            /// </summary>
+            /// <param name="columns">需要查询的列（默认全部）(new string[]{"USER_CODE"})</param>
+            /// <returns></returns>
+            public IEnumerable<T> GetList(ICollection<string> columns = null)
+            {
+                var sql = database.DbContextServices.SqlGenerater.Select(typeof(T), columnNames: columns);
+                return database.Query<T>(sql);
+            }
+            /// <summary>
+            /// 查询所有数据
+            /// </summary>
+            /// <param name="entity"></param>
+            /// <param name="primaryKeyName">条件列（AND 连接符）(new string[]{"USER_CODE"})</param>
+            /// <param name="columns">需要查询的列（默认全部）(new string[]{"USER_CODE"})</param>
+            /// <returns></returns>
+            public IEnumerable<T> GetList(T entity, ICollection<string> primaryKeyName, ICollection<string> columns = null)
+            {
+                var type = GetEnumerableElementType(typeof(T), out bool isEnumerable);
+                var sql = database.DbContextServices.SqlGenerater.Select(typeof(T), null, columns, primaryKeyName);
+                return database.Query<T>(sql, entity);
+            }
+            /// <summary>
+            /// 查询所有数据
+            /// </summary>
+            /// <param name="where">条件（p=>p.USER_CODE == "" p.PWD == "" (p.USER_NAME.Contains("123") p.USER_NAME.StartsWith("123") p.USER_NAME.EndWith("123")) p.EMAIL.In(new string[]{"2","3"}）</param>
+            /// <param name="columns">需要查询的列（默认全部）(new string[]{"USER_CODE"})</param>
+            /// <returns></returns>
+            public IEnumerable<T> GetList(Expression<Func<T, object>> where, ICollection<string> columns = null)
+            {
+                ExpressionUtil2 exp = new ExpressionUtil2(where, database.DbContextServices.SqlAdapter.GetParameterPrefix());
+                var sql = database.DbContextServices.SqlGenerater.Select(typeof(T), exp.SqlCmd, "", columnNames: columns);
+                return database.Query<T>(sql, exp.Param);
+            }
+            /// <summary>
+            /// 查询列表（条件IN）
+            /// </summary>
+            /// <param name="param">条件参数（new { USER_CODE = string[]}）</param>
+            /// <param name="primaryKeyName">条件列（AND 连接符）(new string[]{"USER_CODE"})</param>
+            /// <param name="columns">需要查询的列（默认全部）(new string[]{"USER_CODE"})</param>
+            /// <returns></returns>
+            public IEnumerable<T> GetListByIn(object param, ICollection<string> primaryKeyName, ICollection<string> columns = null)
+            {
+                var sql = database.DbContextServices.SqlGenerater.SelectIn(typeof(T), primaryKeyName, columns);
+                return database.Query<T>(sql, param);
+            }
+             
             /// <summary>
             /// 分页查询
             /// </summary>
@@ -324,7 +380,7 @@ namespace BOZHON.TSAMO.DBHelper
                     string wh2 = whereStr.Substring(6);
                     where = "WHERE " + wh1.Replace("AND", "").Replace("OR", "") + wh2;
                 }
-                var pageSql = database.DbContextServices.SqlGenerater.Select(typeof(T), null, null) + where;
+                var pageSql = database.DbContextServices.SqlGenerater.Select(typeof(T)) + where;
                 var partedSql = PagingUtil.SplitSql(pageSql);
                 if (!string.IsNullOrEmpty(sortOrder))
                     partedSql.OrderBy = sortOrder;
@@ -696,7 +752,7 @@ namespace BOZHON.TSAMO.DBHelper
 
         public static TDatabase Init(string connectionString = "")
         {
-            
+
             TDatabase db = new TDatabase();
             db.ConnectionString = connectionString;
             //db.SetConnectionString(connectionStr);
@@ -812,12 +868,12 @@ namespace BOZHON.TSAMO.DBHelper
 
             string regStr6 = @"\s{0,}>=\s{0,}\$";
             var reg6 = new Regex(regStr6);
-            string aims6 = @" IN " + DbContextServices.SqlAdapter.GetParameterPrefix();
+            string aims6 = @" >= " + DbContextServices.SqlAdapter.GetParameterPrefix();
             sql = reg6.Replace(sql, aims6);
 
             string regStr7 = @"\s{0,}<=\s{0,}\$";
             var reg7 = new Regex(regStr7);
-            string aims7 = @" IN " + DbContextServices.SqlAdapter.GetParameterPrefix();
+            string aims7 = @" <= " + DbContextServices.SqlAdapter.GetParameterPrefix();
             sql = reg7.Replace(sql, aims7);
             return sql;
         }

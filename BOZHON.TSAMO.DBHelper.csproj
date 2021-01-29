@@ -4,14 +4,18 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>BOZHON.TSAMO.DBHelper</AssemblyName>
     <RootNamespace>BOZHON.TSAMO.DBHelper</RootNamespace>
-    <Version>1.0.4</Version>
-    <PackageReleaseNotes>添加lambda 条件表达式</PackageReleaseNotes>
+    <Version>1.0.5</Version>
+    <PackageReleaseNotes>注释</PackageReleaseNotes>
     <Description>基于Dapper的数据库操作</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	<AssemblyVersion>1.0.5.0</AssemblyVersion>
+	<FileVersion>1.0.5.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>TRACE;DEBUG;;ASYNC;COREFX;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+    <DocumentationFile>E:\个人项目\研发项目\Dbhelper\BOZHON.TSAMO.DBHelper\BOZHON.TSAMO.DBHelper.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
